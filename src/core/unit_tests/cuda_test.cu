@@ -30,8 +30,6 @@
 
 #include "cuda/CudaHostAllocator.hpp"
 
-#include <cuda.h>
-
 #include <boost/test/unit_test.hpp>
 
 #include <cstddef>
@@ -197,8 +195,13 @@ BOOST_AUTO_TEST_CASE(gpu_interface, *fixture) {
   } catch (cuda_fatal_error &err) {
     error_caught = true;
     err.set_terminate(increment_counter);
+#if defined(__HIP__)
+    std::string const what = "CUDA error: \"operation not supported\" during "
+                             "memory operation in filename.cu:4";
+#else
     std::string const what = "CUDA error: \"operation not permitted\" during "
                              "memory operation in filename.cu:4";
+#endif
     BOOST_CHECK_EQUAL(fatal_error_counter, local_error_counter);
     BOOST_CHECK_EQUAL(err.what(), what);
   }
